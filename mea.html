@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IELTS Reading Test - Vol 9 Test 3</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .highlight-yellow { background-color: #fef08a; }
+    .highlight-green { background-color: #bbf7d0; }
+    .highlight-cyan { background-color: #a5f3fc; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans h-screen flex flex-col overflow-hidden">
+
+  <!-- Header / Top Control Bar -->
+  <header class="bg-indigo-900 text-white px-4 py-3 flex flex-wrap justify-between items-center shadow-md z-10 gap-2">
+    <div class="flex items-center space-x-3">
+      <h1 class="font-bold text-lg md:text-xl tracking-wide flex items-center gap-2">
+        <i class="fa-solid fa-graduation-cap text-yellow-400"></i> IELTS Reading Practice
+      </h1>
+      <span class="bg-indigo-700 text-xs text-indigo-200 px-2.5 py-1 rounded-full font-mono">Vol 9 - Test 3</span>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex bg-indigo-950 p-1 rounded-lg text-sm">
+      <button onclick="switchPassage(1)" id="tab-p1" class="px-3 py-1.5 rounded-md font-medium transition bg-indigo-600 text-white shadow">Passage 1</button>
+      <button onclick="switchPassage(2)" id="tab-p2" class="px-3 py-1.5 rounded-md font-medium transition text-indigo-300 hover:text-white">Passage 2</button>
+      <button onclick="switchPassage(3)" id="tab-p3" class="px-3 py-1.5 rounded-md font-medium transition text-indigo-300 hover:text-white">Passage 3</button>
+    </div>
+
+    <!-- Controls & Timer -->
+    <div class="flex items-center space-x-3 text-sm">
+      <div class="bg-indigo-950 px-3 py-1.5 rounded-lg flex items-center space-x-2 font-mono text-yellow-300 border border-indigo-800">
+        <i class="fa-regular fa-clock"></i>
+        <span id="timer-display" class="font-bold">60:00</span>
+      </div>
+      <button onclick="toggleNotes()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition shadow">
+        <i class="fa-solid fa-pen-to-square"></i> Ghi chú
+      </button>
+      <button onclick="submitTest()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 shadow transition">
+        <i class="fa-solid fa-check"></i> Nộp Bài
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Split-Screen Container -->
+  <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+    
+    <!-- Left Pane: Passage View -->
+    <section class="w-full md:w-1/2 bg-white flex flex-col border-r border-slate-300 h-1/2 md:h-full relative">
+      <div class="bg-slate-50 px-4 py-2 border-b border-slate-200 flex justify-between items-center text-xs text-slate-600">
+        <span class="font-semibold text-slate-700 flex items-center gap-1">
+          <i class="fa-solid fa-book-open text-indigo-600"></i> <span id="passage-title-tag">Passage 1</span>
+        </span>
+        <div class="flex items-center space-x-2">
+          <span>Highlight:</span>
+          <button onclick="setHL('yellow')" class="w-5 h-5 rounded-full bg-yellow-300 border border-yellow-400 hover:scale-110 transition"></button>
+          <button onclick="setHL('green')" class="w-5 h-5 rounded-full bg-green-300 border border-green-400 hover:scale-110 transition"></button>
+          <button onclick="setHL('cyan')" class="w-5 h-5 rounded-full bg-cyan-300 border border-cyan-400 hover:scale-110 transition"></button>
+          <button onclick="setHL('none')" class="text-slate-400 hover:text-red-500 ml-1 text-sm" title="Xóa tô màu"><i class="fa-solid fa-eraser"></i></button>
+        </div>
+      </div>
+
+      <div id="passage-content" class="p-6 overflow-y-auto flex-1 text-slate-800 leading-relaxed text-justify space-y-4 text-sm md:text-base selection:bg-yellow-200" onmouseup="applyHighlight()">
+      </div>
+    </section>
+
+    <!-- Right Pane: Questions View -->
+    <section class="w-full md:w-1/2 bg-slate-50 flex flex-col h-1/2 md:h-full">
+      <div class="bg-slate-100 px-4 py-2 border-b border-slate-200 flex justify-between items-center text-xs text-slate-600">
+        <span class="font-semibold text-indigo-800 flex items-center gap-1">
+          <i class="fa-solid fa-list-check"></i> Questions Sheet
+        </span>
+        <span id="score-badge" class="hidden bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold"></span>
+      </div>
+
+      <div id="questions-content" class="p-6 overflow-y-auto flex-1 space-y-8 text-sm md:text-base">
+      </div>
+    </section>
+
+    <!-- Floating Notes Modal/Drawer -->
+    <div id="notes-drawer" class="hidden absolute top-2 right-4 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-slate-300 flex flex-col z-20 overflow-hidden">
+      <div class="bg-amber-600 text-white px-4 py-2.5 flex justify-between items-center font-medium text-sm">
+        <span class="flex items-center gap-2"><i class="fa-solid fa-sticky-note"></i> Sổ Tay Ghi Chú</span>
+        <button onclick="toggleNotes()" class="text-amber-100 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <textarea id="notes-input" class="p-4 w-full h-64 text-sm text-slate-700 focus:outline-none resize-none bg-amber-50/30" placeholder="Viết từ vựng mới, key words hoặc ghi chú làm bài tại đây..."></textarea>
+      <div class="bg-slate-50 px-4 py-2 border-t text-xs text-slate-500 flex justify-between items-center">
+        <span>Tự động lưu vào trình duyệt</span>
+        <button onclick="clearNotes()" class="text-red-500 hover:underline">Xóa ghi chú</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let currentPassage = 1;
+    let hlColor = 'yellow';
+    let userAnswers = {};
+    let timerSeconds = 3600;
+    let isSubmitted = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedNotes = localStorage.getItem('ielts_reading_notes');
+      if (savedNotes) document.getElementById('notes-input').value = savedNotes;
+      document.getElementById('notes-input').addEventListener('input', (e) => {
+        localStorage.setItem('ielts_reading_notes', e.target.value);
+      });
+      renderPassage(1);
+      renderQuestions(1);
+      startTimer();
+    });
+
+    function startTimer() {
+      setInterval(() => {
+        if (timerSeconds > 0 && !isSubmitted) {
+          timerSeconds--;
+          const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+          const s = (timerSeconds % 60).toString().padStart(2, '0');
+          document.getElementById('timer-display').innerText = `${m}:${s}`;
+        }
+      }, 1000);
+    }
+
+    function toggleNotes() {
+      document.getElementById('notes-drawer').classList.toggle('hidden');
+    }
+
+    function clearNotes() {
+      document.getElementById('notes-input').value = '';
+      localStorage.removeItem('ielts_reading_notes');
+    }
+
+    function setHL(color) { hlColor = color; }
+
+    function applyHighlight() {
+      const sel = window.getSelection();
+      if (!sel.isCollapsed && hlColor !== 'none') {
+        const range = sel.getRangeAt(0);
+        const span = document.createElement('span');
+        span.className = `highlight-${hlColor}`;
+        range.surroundContents(span);
+        sel.removeAllRanges();
+      }
+    }
+
+    function switchPassage(num) {
+      currentPassage = num;
+      [1,2,3].forEach(p => {
+        const btn = document.getElementById(`tab-p${p}`);
+        if (p === num) {
+          btn.className = "px-3 py-1.5 rounded-md font-medium transition bg-indigo-600 text-white shadow";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-md font-medium transition text-indigo-300 hover:text-white";
+        }
+      });
+      renderPassage(num);
+      renderQuestions(num);
+    }
+
+    const passages = {
+      1: `
+        <h2 class="text-xl font-bold text-indigo-900 border-b pb-2 mb-4">Passage 1: New Understanding of Giraffes in the Wild</h2>
+        <p>Even as the tallest animals on Earth, giraffes can be easy to overlook. Despite being a favorite in zoos, until recently almost nobody studied giraffes in the wild. “When I first became interested in giraffes in 2008 and started looking through the scientific literature, I was really surprised to see how little had been done,” said Megan Strauss, an animal researcher at the University of Minnesota, USA. All that is changing fast, as a growing number of researchers seek to understand the biology and complex behavior of this graceful giant in its native habitat.</p>
+        <p>Giraffes, found throughout sub-Saharan Africa, are currently classified as a single species with up to nine varieties that differ by features like head shape and whether the fur on their legs is plain or patterned. The giraffe is not listed as endangered, but researchers point to evidence that in the past 15 years, the population has fallen some 40 percent.</p>
+        <p>Recent studies have allowed researchers new insights into giraffes’ social structures. Groups of female giraffes, for example, have been found to form close friendships that can last for years. “We’re just at the beginnings of trying to understand this kind of behavior,” Dr Strauss said. Female giraffes can live 20 years or more, and it makes sense they might rely on each other for clues to the best feeding grounds, help with taking care of their young, or the reduction of stress, by staying in groups.</p>
+        <p>Mother giraffes have displayed signs of grief after losing their young, known as calves, to lions. Dr Strauss described one case in which a mother spent four days at the place where a lion had eaten her calf, refusing food, and often in the company of two other adult females. Giraffe calves are extremely vulnerable to predators, and though mothers will fight valiantly to keep their young alive – kicking forward and backward – half of all calves are killed in their first year of life.</p>
+        <p>Male giraffes, known as bulls, generally become more important with age, and older bulls display that dominance physically and behaviorally: as their neck muscles grow, the male’s posture becomes prouder and more vertical. Recent observations show young bulls, when left on their own, mimicking their elders: head held high and neck puffed out. But should a dominant older bull come into view, the younger males instantly try to make themselves look small and innocent.</p>
+        <p>The younger bulls have reason to fear their elders. Clashes have been witnessed between adults when each bull repeatedly ‘necks’ the other, using his massive neck to slam his head against his rival. One bull somehow survived with a broken neck.</p>
+        <h3 class="font-bold text-slate-800 mt-4">Physical features of giraffes: study findings</h3>
+        <p>The skin of a giraffe is mostly gray. The coat has dark patches separated by light hair, which serves as camouflage, allowing them to blend in with the light and shade patterns of the acacia trees from which they feed. Grazing giraffes are hard to see even a few meters away.</p>
+        <p>Research indicates that giraffes also have excellent sight, can see in color and over great distances, which helps them to spot lions and keep track of each other. In addition, a giraffe’s extraordinary mouth has lips and tongue that can together grasp a branch and then pluck away the leaves while avoiding thorns, almost as humans would grab with their hands. Each day, a giraffe consumes about 30 kilograms of leaves, shoots and vines, all digested in its four-chambered stomach.</p>
+        <p>A giraffe can stand more than six meters tall, with its neck accounting for roughly a third of its height and its legs the same. The giraffe’s long neck is due to the length of the vertebrae, not the number of vertebrae. The growth of the neck largely takes place during early childhood, as giraffe mothers would have a difficult time giving birth to young with longer necks. The giraffe’s head and neck are held up by large muscles attached to the lower spine.</p>
+        <p>Recent studies show the greatest challenge to the giraffe’s cardiovascular system is how to both pump blood very high and retrieve it from far below. The outside of a giraffe’s veins are extremely thick, to prevent blood leaking into surrounding tissue. Other adaptations in the cardiovascular system allow the giraffe to bend over for a drink of water, and then raise its head again quickly without fainting.</p>
+        <p>Researchers were also surprised to find that a giraffe does not have an unusually large heart. It is half a percent of body mass, the same as in a mouse. Moreover, the amount of blood pumped into circulation is modest, proportionally lower than it is in humans. That could help explain why giraffes rarely run for very long: enough oxygen cannot be delivered to their muscles fast enough for them to keep running. Or maybe the giraffes are worried about tripping over their own feet. This is because signals from the nerves travel at about the same speed in giraffes as in rats or other mammals. Given the greater distance they have to travel in the giraffe to reach the brain, it is possible the giraffe faces real challenges in reacting quickly to a rock beneath its hoof or a bite to its ankle.</p>
+      `,
+      2: `
+        <h2 class="text-xl font-bold text-indigo-900 border-b pb-2 mb-4">Passage 2: Healthy buildings, productive people</h2>
+        <p><strong>[14]</strong> Have you felt tired at your desk lately? According to new research, some often overlooked environmental factors within buildings – the degree or type of ventilation, airborne contaminants, lighting and noise levels, for example – can play a surprisingly large role in how good or bad you feel, and even how well you think. It is estimated that we spend more than 90 percent of our time inside, but builders in general have paid little attention to the health aspects of indoor spaces, instead focusing on superficial design features and on meeting minimum environmental standards to keep costs down.</p>
+        <p><strong>[15]</strong> Researchers at Harvard University in the US looked at the effects of indoor air quality on workers' cognitive performance – important both for health and for companies' bottom lines, says Joseph Allen, assistant professor of environmental health and principal investigator of the studies. ‘The true cost of running our buildings should take into account the health and productivity of people in those buildings,’ Allen says. In fact, an analysis by the team showed that the cost of making alterations that could boost cognitive performance significantly was minuscule compared with the related increase in productivity – about $40 per person, per year, compared with a $6,500 increase in employee productivity.</p>
+        <p><strong>[16]</strong> The team’s first study, published in Environmental Health Perspectives, was conducted at the Syracuse Center of Excellence, a US research organization devoted to studying and developing sustainability. The center houses a laboratory that allows researchers to test a wide range of indoor air quality factors using sophisticated ventilation. Each day, the indoor environment was controlled with a ventilation system which included small amounts of carbon dioxide and volatile organic compounds, or VOCs – the toxic by-products of office supplies commonly found in the workplace. The office workers were blinded to the conditions. For six days over two weeks, 24 office workers with administrative, technical, professional or managerial jobs came to the lab and performed their regular work under minimal supervision, as well as participating in an hour and a half of cognitive testing at the end of the day. The cognitive tasks used in the study had participants respond to online scenarios that mimic real-life situations, such as running a city as mayor. The findings are remarkable for showing in a well-controlled study, that indoor air quality can significantly lower cognitive performance in buildings that would otherwise meet current building standards, notes environmental psychologist Craig Zimring, director of Georgia Tech University’s SimTigrate Design Lab in the US. ‘If these findings are replicated in other labs and in real-world work environments,’ he says, ‘they could lead to designs that provide much more outside air through mechanical ventilation or operable windows, for example’ – in turn, promoting better health and performance.</p>
+        <p><strong>[17]</strong> In a second study, reported in Building and Environment, the Harvard-Syracuse team moved from the lab to the real world. Using the same methodology, they compared test scores of 109 people working in 10 buildings – about 12 people per site – in two buildings in each of five cities. When the team examined the buildings for differences, they found that certified buildings had lower humidity levels and brighter light than the non-certified buildings. That said, the differences in humidity and lighting didn’t entirely explain the differing cognitive function scores of people on the job. This has led researchers to believe that other factors, such as how someone feels about their working environment, may also play a part, notes Harvard research fellow Piers MacNaughton, who led the study.</p>
+        <p><strong>[18]</strong> A recently constructed building on the Washington University campus in St. Louis, US, is providing another opportunity to examine how green building design can affect health and behavior. Hillman Hall was designed with the highest environmental and energy standards available, as well as design elements intended to foster more collaboration and physical activity, says Amy Eyler, associate professor and assistant dean for public health at the Brown School at Washington University. The design includes easy access to stairways, plenty of natural light, generous spaces for collaboration, desks that allow people to sit or stand up, and inviting places to walk. Unlike traditional hallways designed as long corridors with private offices to either side, for example, these hallways include classrooms, offices and spaces to sit, so they are multi-use – ‘you have many reasons to walk them,’ says Eyler. To test how the building might affect people’s behavior, Eyler conducted a pre-test before people moved in, and a post-test one year later. Her team collected data on the three main features the designers were attempting to foster: physical activity, collaboration and sustainable practices. Results showed that people were more likely to take part in spontaneous collaborations in the new space than in the older ones, and to be physically active.</p>
+        <p><strong>[19]</strong> Like other researchers in this growing field, Eyler sees multidisciplinary collaboration as the key to success. Administrators, public health faculty and architects worked together to create a building that captured the university’s vision for a space that fosters collegial work and health for faculty, staff and students – a shared goal evidenced by the fact that the architecture firm that designed the building also funded part of the research. ‘Complex projects like this one need teams of people with varied backgrounds and expertise in order to solve them,’ Eyler says.</p>
+      `,
+      3: `
+        <h2 class="text-xl font-bold text-indigo-900 border-b pb-2 mb-4">Passage 3: Child’s Play in Medieval England</h2>
+        <p><strong>Paragraph A:</strong> ‘Play up! Play up! And play the game!’ The ringing chorus of Sir Henry Newbolt’s celebrated cricket poem Vitai Lampada (1908) sums up views about play in 19th- and early 20th-century Britain. Children’s play was important, and adults should regulate and direct it. Games promoted endurance, self-discipline and team spirit – qualities needed for the health of society and government. Newbolt was one in a long line of people who thought in this way. The notion that children’s play should be used for educational and social purposes goes back at least to the ancient Greeks and the toys and games of medieval England tell us much about how adults then saw childhood. But they also reveal a good deal about children themselves, and cast light on what has recently become a controversial issue.</p>
+        <p><strong>Paragraph B:</strong> Forty years ago, the French historian Philippe Ariès argued, in Centuries of Childhood, that childhood in the Middle Ages did not exist in its modern sense. Children were regarded by adults with relatively little affection and followed a way of life not very different from that of their elders. More recent historians have disputed this, pointing to plentiful signs of parental affection and arguing that childhood, by its very nature, must always have been much the same.</p>
+        <p><strong>Paragraph C:</strong> In this debate play is crucial. Did adults encourage it? If so, did they see it as recreational (by providing toys, for example) or as educational (making children play in particular ways)? Did children play as their elders told them, or did they invent their own games, away from adults and even against their wishes? These questions can be answered from a rich body of evidence including actual toys of the period, pictures of children’s activities in contemporary manuscripts and literary sources such as religious works and dictionaries. We know not only how medieval English children played but what their elders thought on the subject.</p>
+        <p><strong>Paragraph D:</strong> We know, for example, that adults gave children toys from infancy onwards. In 1398 the writer John Trevisa describes babies playing with ‘a child’s brooch’, an object similar in function to the bright plastic toys given to babies today to bite and handle. William Horman, 16th-century author of a Latin textbook, talks of buying a rattle to stop a baby crying. Indeed, by 1300 it appears there was a toy industry in England. Boys’ toys often took military forms, such as the two metal soldiers that, found in London, and made from mud. Girls had dolls, known before the 17th century as ‘poppets’ or puppets, commercially manufactured, imported and, for 1582, taxed at a halfpenny each. Not that children were by any means dependent on things that were bought from them. Gerald of Wales recalls how he and his brothers built towns, palaces, churches and monasteries from sand at Manorbier Castle in about 1150 (perhaps on the nearby beach).</p>
+        <p><strong>Paragraph E:</strong> Active games were universal. In his English-to-Latin dictionary of 1440, a mysterious recluse known as Geoffrey mentions children playing ‘tennis’ and swinging on what he calls a ‘totter’ or ‘merrytotter’. Children chased each other, swam and played ball games. Boys in the later Middle Ages shot arrows with bows and archery is an example of a sport encouraged by adults, who wanted boys to grow up to play their part in war, for most men, a warrior society.</p>
+        <p><strong>Paragraph F:</strong> However, by no means all children’s military activities were directed by adults. In 1400, six months after King Richard II had been overthrown by Henry IV, the children of London gathered together and chose themselves kings. Adam of Usk tells us they congregated ‘in thousands ... and made war upon each other ... whereby many died’. The new king had to order their parents and masters to stop them.</p>
+        <p><strong>Paragraph G:</strong> This willingness of children to take the initiative in play, not just to wait for adults to direct them, is evident in the way they observed the calendar. Medieval life was regulated by light, weather, crops and the Church’s cycle of fasts and festivals. Children shared in the adult round of religious festivals, but had their own observances as well, semi-detached from their elders. In the 1200s, the priest Thomas Docking remarked that in spring a child ‘follows the ploughman’; in autumn he accompanies the grape-gatherers’. In 1518, the poet Alexander Barclay records children playing with tops in March, looking for fruit in summer and making footballs by filling pigs’ bladders with dried peas in autumn.</p>
+        <p><strong>Paragraph H:</strong> It is clear from this evidence that the relationship between adults and children in medieval society was, in major respects, a modern one. Parents took an indulgent interest in their children, providing them with toys and giving them time to play. Children played in a wide variety of ways – imaginatively, skilfully, athletically and violently – developing their minds, bodies and social skills. Adults tried at times to direct play – partly to keep children in order, partly to give them skills for adult life – but children gravitated to one another and formed a culture of their own. We can answer Ariès’s thesis, then, with a resounding ‘No!’. Childhood has always been much the same.</p>
+      `
+    };
+
+    const answersData = {
+      1: { ans: "TRUE", quote: "All that is changing fast, as a growing number of researchers seek to understand...", exp: "Số lượng nghiên cứu về hươu cao cổ ngoài tự nhiên đang gia tăng nhanh chóng." },
+      2: { ans: "NOT GIVEN", quote: "Despite being a favorite in zoos...", exp: "Bài đọc đề cập Megan Strauss nghiên cứu hươu cao cổ nhưng không nói cô ấy có phản đối việc giữ hươu ở sở thú hay không." },
+      3: { ans: "FALSE", quote: "...in the past 15 years, the population has fallen some 40 percent.", exp: "Số lượng hươu cao cổ giảm 40%, trái ngược hoàn toàn với việc 'tăng gấp đôi'." },
+      4: { ans: "NOT GIVEN", quote: "Female giraffes can live 20 years or more...", exp: "Không có thông tin so sánh tuổi thọ giữa hươu cái và hươu đực." },
+      5: { ans: "TRUE", quote: "...though mothers will fight valiantly to keep their young alive – kicking forward and backward...", exp: "Hươu mẹ sử dụng chân (kicking) để bảo vệ con khỏi thú săn mồi." },
+      6: { ans: "FALSE", quote: "...should a dominant older bull come into view, the younger males instantly try to make themselves look small...", exp: "Hươu đực trẻ tự làm mình nhỏ bé đi chứ không vươn cao cổ lên trước mặt hươu đực lớn hơn." },
+      7: { ans: "TRUE", quote: "Clashes have been witnessed between adults when each bull repeatedly 'necks' the other...", exp: "Đã có quan sát thực tế về việc hươu đực húc cổ đánh nhau." },
+      8: { ans: "camouflage", quote: "...which serves as camouflage, allowing them to blend in...", exp: "Lớp lông có đốm đóng vai trò ngụy trang." },
+      9: { ans: "hands", quote: "...pluck away the leaves while avoiding thorns, almost as humans would grab with their hands.", exp: "Môi và lưỡi hươu linh hoạt như bàn tay người." },
+      10: { ans: "birth", quote: "...as giraffe mothers would have a difficult time giving birth to young with longer necks.", exp: "Cổ hươu phát triển sau sinh để hươu mẹ sinh con dễ dàng hơn." },
+      11: { ans: "veins", quote: "The outside of a giraffe’s veins are extremely thick...", exp: "Mạch máu (veins) cực kỳ dày giúp ngăn rò rỉ máu." },
+      12: { ans: "Heart", quote: "Researchers were also surprised to find that a giraffe does not have an unusually large heart.", exp: "Trái tim hươu cao cổ có kích thước bình thường tương quan với cơ thể." },
+      13: { ans: "signals", quote: "This is because signals from the nerves travel at about the same speed...", exp: "Tín hiệu thần kinh (signals) phải đi quãng đường xa hơn tới não." },
+
+      14: { ans: "iv", quote: "...builders in general have paid little attention to the health aspects of indoor spaces...", exp: "Các nhà thầu ít chú ý/coi nhẹ yếu tố sức khỏe môi trường trong nhà." },
+      15: { ans: "viii", quote: "...cost of making alterations... was minuscule compared with the related increase in productivity...", exp: "Lợi ích tài chính lớn từ việc cải thiện không gian làm việc." },
+      16: { ans: "vi", quote: "24 office workers... came to the lab and performed their regular work...", exp: "Nhân viên được đánh giá ngoài môi trường làm việc thực tế của họ (trong phòng lab)." },
+      17: { ans: "iii", quote: "...compared test scores of 109 people working in 10 buildings... in five cities.", exp: "Đánh giá không gian làm việc ở nhiều địa điểm khác nhau." },
+      18: { ans: "i", quote: "Hillman Hall was designed with the highest environmental and energy standards...", exp: "Tác động của tòa nhà thân thiện môi trường mới tới nhân viên." },
+      19: { ans: "v", quote: "Complex projects like this one need teams of people with varied backgrounds...", exp: "Đạt hiệu quả nhờ sự tham gia của nhiều chuyên gia đa ngành." },
+      20: { ans: "B", quote: "Craig Zimring: 'If these findings are replicated... promote better health and performance.'", exp: "Các nghiên cứu sâu hơn sẽ cải thiện sức khỏe và hiệu suất." },
+      21: { ans: "C", quote: "Piers MacNaughton: '...how someone feels about their working environment, may also play a part...'", exp: "Cảm nhận của một người về nơi làm việc ảnh hưởng tới hiệu suất." },
+      22: { ans: "D", quote: "Amy Eyler: '...design elements intended to foster more collaboration...'", exp: "Thiết kế không gian tăng cường sự hợp tác giữa các đồng nghiệp." },
+      23: { ans: "A", quote: "Joseph Allen / Craig Zimring: '...indoor air quality can significantly lower cognitive performance...'", exp: "Môi trường làm việc xấu làm giảm khả năng nhận thức." },
+      24: { ans: "sustainability", quote: "...Syracuse Center of Excellence... devoted to studying and developing sustainability.", exp: "Trung tâm tập trung nghiên cứu sự phát triển bền vững." },
+      25: { ans: "supervision", quote: "...performed their regular work under minimal supervision...", exp: "Làm việc dưới sự giám sát tối thiểu." },
+      26: { ans: "mayor", quote: "...mimic real-life situations, such as running a city as mayor.", exp: "Đóng vai trò như thị trưởng xử lý công việc." },
+
+      27: { ans: "D", quote: "...by 1300 it appears there was a toy industry in England... taxed at a halfpenny each.", exp: "Bằng chứng kinh tế (ngành công nghiệp đồ chơi, thuế búp bê)." },
+      28: { ans: "D", quote: "...built towns, palaces, churches and monasteries from sand...", exp: "Trẻ tự tạo đồ chơi/lâu đài từ cát." },
+      29: { ans: "E", quote: "...archery is an example of a sport encouraged by adults...", exp: "Trò chơi bắn cung mang tính chiến trận được người lớn khuyến khích." },
+      30: { ans: "F", quote: "In 1400, six months after King Richard II had been overthrown... children gathered together and chose themselves kings.", exp: "Sự kiện chính trị lật đổ vua phản ánh qua trò chơi của trẻ em." },
+      31: { ans: "B", quote: "Forty years ago, the French historian Philippe Ariès argued...", exp: "Nguồn gốc cuộc tranh luận học thuật về thời thơ ấu thời Trung cổ." },
+      32: { ans: "I", quote: "In 1400... the children of London... made war upon each other...", exp: "Năm 1400: Trẻ em lập băng nhóm đánh nhau." },
+      33: { ans: "C", quote: "Sir Henry Newbolt’s celebrated cricket poem Vitai Lampada (1908)...", exp: "Năm 1908: Bài thơ khen ngợi giá trị của trò chơi." },
+      34: { ans: "H", quote: "...dictionary of 1440... mentions children playing 'tennis'...", exp: "Năm 1440: Nhắc đến trò chơi tennis." },
+      35: { ans: "F", quote: "...and, for 1582, taxed at a halfpenny each.", exp: "Năm 1582: Búp bê bị đánh thuế." },
+      36: { ans: "NO", quote: "We know not only how medieval English children played but what their elders thought on the subject.", exp: "Trái ngược với nhận định 'biết rất ít'." },
+      37: { ans: "NOT GIVEN", quote: "By 1300 it appears there was a toy industry in England...", exp: "Bài đọc không nói đa số đồ chơi trước 1300 có phải nhập khẩu hay không." },
+      38: { ans: "YES", quote: "Children shared in the adult round of religious festivals, but had their own observances as well...", exp: "Trẻ em đón mừng các mùa theo cách riêng của chúng." },
+      39: { ans: "NOT GIVEN", quote: "N/A", exp: "Không có thông tin về việc trẻ em làm quà tặng bố mẹ." },
+      40: { ans: "YES", quote: "It is clear from this evidence that the relationship between adults and children in medieval society was... a modern one.", exp: "Mối quan hệ giữa bố mẹ và con cái thời đó giống ngày nay." }
+    };
+
+    function renderPassage(num) {
+      document.getElementById('passage-title-tag').innerText = `Passage ${num}`;
+      document.getElementById('passage-content').innerHTML = passages[num];
+    }
+
+    function renderQuestions(num) {
+      const container = document.getElementById('questions-content');
+      let html = "";
+
+      if (num === 1) {
+        html += `
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-indigo-900 border-b pb-2 mb-3">Questions 1–7</h3>
+            <p class="text-xs text-slate-500 mb-4">Choose TRUE, FALSE, or NOT GIVEN for each statement.</p>
+            ${[
+              "1. The amount of research on giraffes in their natural environment has increased lately.",
+              "2. Megan Strauss disapproves of keeping giraffes in zoos.",
+              "3. The number of giraffes in Africa has nearly doubled.",
+              "4. Female giraffes tend to live longer than males.",
+              "5. Mother giraffes sometimes use their legs to defend their young.",
+              "6. Younger bulls hold their necks higher in the presence of more powerful males.",
+              "7. Male giraffes have been observed fighting."
+            ].map((q, idx) => renderTFNG(idx + 1, q)).join('')}
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-indigo-900 border-b pb-2 mb-3">Questions 8–13</h3>
+            <p class="text-xs text-slate-500 mb-4">Complete the table below. Write ONE WORD ONLY from the passage for each answer.</p>
+            ${renderGapFill(8, "Skin/Coat: Provides", "when standing near trees")}
+            ${renderGapFill(9, "Mouth: Can be used like", "to get leaves")}
+            ${renderGapFill(10, "Neck: Length develops in childhood to provide an easier", "for mothers")}
+            ${renderGapFill(11, "Cardiovascular system: Extra strong", "keep blood from spilling into other tissue")}
+            ${renderGapFill(12, "", "Normal size for such a large animal")}
+            ${renderGapFill(13, "Nerves: Slower reaction time because", "need to go farther to the brain")}
+          </div>
+        `;
+      } else if (num === 2) {
+        html += `
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-indigo-900 border-b pb-2 mb-3">Questions 14–19</h3>
+            <p class="text-xs text-slate-500 mb-3">Choose the correct heading for each paragraph (14–19) from the list below:</p>
+            <div class="bg-slate-50 p-3 rounded text-xs text-slate-700 mb-4 space-y-1">
+              <p>i The effects of a new environmentally friendly building on the people who work there</p>
+              <p>ii The ability of well-designed workplaces to attract the best staff</p>
+              <p>iii The assessment of workplaces in several locations</p>
+              <p>iv The low priority given to making buildings healthy for users</p>
+              <p>v Achieving design efficiency by involving a range of specialists</p>
+              <p>vi Workers were assessed outside of their usual workplace</p>
+              <p>vii Workplace changes based on worker feedback</p>
+              <p>viii The financial benefits of efficient workplaces</p>
+            </div>
+            ${[14,15,16,17,18,19].map(qNum => renderSelect(qNum, `Paragraph ${qNum}`, ['i','ii','iii','iv','v','vi','vii','viii'])).join('')}
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-indigo-900 border-b pb-2 mb-3">Questions 20–23</h3>
+            <p class="text-xs text-slate-500 mb-3">Match each statement with the correct researcher: A (Joseph Allen), B (Craig Zimring), C (Piers MacNaughton), D (Amy Eyler)</p>
+            ${[
+              "20. Further investigations will result in improved wellbeing and efficiency.",
+              "21. A person's opinion of their workspace may influence how well they perform at work.",
+              "22. The design of a workplace can have an impact on how much staff work with their colleagues.",
+              "23. A worker's mental capacity may be considerably reduced due to their working environment."
+            ].map((q, idx) => renderSelect(idx + 20, q, ['A','B','C','D'])).join('')}
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-indigo-900 border-b pb-2 mb-3">Questions 24–26</h3>
+            <p class="text-xs text-slate-500 mb-4">Complete the summary. Write ONE WORD ONLY from the passage.</p>
+            ${renderGapFill(24, "Syracuse Center focuses on researching", ".")}
+            ${renderGapFill(25, "Staff carried out normal duties during the day without much", ".")}
+            ${renderGapFill(26, "Participants performed tasks requiring them to act as", "while dealing with practical problems.")}
+          </div>
+        `;
+      } else if (num === 3) {
+        html += `
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-indigo-900 border-b pb-2 mb-3">Questions 27–31</h3>
+            <p class="text-xs text-slate-500 mb-3">Which paragraph contains the following information? (Choose A–H)</p>
+            ${[
+              "27. economic evidence for play in medieval England",
+              "28. an example of how children created their own toys",
+              "29. an example of warlike play approved by grown-ups",
+              "30. a political event mirrored in children's play",
+              "31. the origin of an academic debate about medieval life"
+            ].map((q, idx) => renderSelect(idx + 27, q, ['A','B','C','D','E','F','G','H'])).join('')}
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-indigo-900 border-b pb-2 mb-3">Questions 32–35</h3>
+            <p class="text-xs text-slate-500 mb-3">Match each date with the correct event (A–J):</p>
+            <div class="bg-slate-50 p-2.5 rounded text-xs text-slate-700 mb-4 grid grid-cols-2 gap-1">
+              <span>A. invention of cricket</span>
+              <span>B. children picking grapes</span>
+              <span>C. poem about value of games</span>
+              <span>D. early toy manufacturing</span>
+              <span>E. puppets imported</span>
+              <span>F. dolls taxed in England</span>
+              <span>G. death of Adam of Usk</span>
+              <span>H. children playing tennis</span>
+              <span>I. children’s gang warfare</span>
+              <span>J. seasonal activities</span>
+            </div>
+            ${[
+              "32. 1400",
+              "33. 1908",
+              "34. 1440",
+              "35. 1582"
+            ].map((q, idx) => renderSelect(idx + 32, q, ['A','B','C','D','E','F','G','H','I','J'])).join('')}
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-indigo-900 border-b pb-2 mb-3">Questions 36–40</h3>
+            <p class="text-xs text-slate-500 mb-4">Choose YES, NO, or NOT GIVEN.</p>
+            ${[
+              "36. Little is known about adult attitudes to children’s play in the Middle Ages.",
+              "37. Most toys were imported into England before 1300.",
+              "38. Medieval children celebrated the seasons in their own ways.",
+              "39. Medieval children made presents for their parents on special occasions.",
+              "40. Parents and children in the Middle Ages behaved much as they do today."
+            ].map((q, idx) => renderYN(idx + 36, q)).join('')}
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+      restoreUserInputs();
+    }
+
+    function renderTFNG(qNum, label) {
+      return `
+        <div class="mb-4">
+          <p class="font-medium text-slate-800 text-sm mb-2">${label}</p>
+          <div class="flex gap-4 text-xs">
+            ${['TRUE','FALSE','NOT GIVEN'].map(opt => `
+              <label class="flex items-center space-x-1.5 cursor-pointer">
+                <input type="radio" name="q_${qNum}" value="${opt}" onchange="saveAnswer(${qNum}, '${opt}')" class="text-indigo-600">
+                <span>${opt}</span>
+              </label>
+            `).join('')}
+          </div>
+          <div id="explanation-${qNum}" class="hidden mt-2 text-xs p-2.5 rounded bg-slate-50 border border-slate-200"></div>
+        </div>
+      `;
+    }
+
+    function renderYN(qNum, label) {
+      return `
+        <div class="mb-4">
+          <p class="font-medium text-slate-800 text-sm mb-2">${label}</p>
+          <div class="flex gap-4 text-xs">
+            ${['YES','NO','NOT GIVEN'].map(opt => `
+              <label class="flex items-center space-x-1.5 cursor-pointer">
+                <input type="radio" name="q_${qNum}" value="${opt}" onchange="saveAnswer(${qNum}, '${opt}')" class="text-indigo-600">
+                <span>${opt}</span>
+              </label>
+            `).join('')}
+          </div>
+          <div id="explanation-${qNum}" class="hidden mt-2 text-xs p-2.5 rounded bg-slate-50 border border-slate-200"></div>
+        </div>
+      `;
+    }
+
+    function renderSelect(qNum, label, options) {
+      return `
+        <div class="mb-3 flex items-center justify-between text-xs md:text-sm">
+          <span class="font-medium text-slate-800 flex-1 pr-2">${label}</span>
+          <select onchange="saveAnswer(${qNum}, this.value)" id="select-${qNum}" class="bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-500">
+            <option value="">--</option>
+            ${options.map(o => `<option value="${o}">${o}</option>`).join('')}
+          </select>
+        </div>
+        <div id="explanation-${qNum}" class="hidden mb-3 text-xs p-2.5 rounded bg-slate-50 border border-slate-200"></div>
+      `;
+    }
+
+    function renderGapFill(qNum, prefix, suffix) {
+      return `
+        <div class="mb-3 text-xs md:text-sm">
+          <span class="font-semibold text-indigo-900">${qNum}.</span>
+          <span>${prefix}</span>
+          <input type="text" oninput="saveAnswer(${qNum}, this.value)" id="input-${qNum}" class="mx-1 border border-slate-300 rounded px-2 py-1 text-xs w-28 text-center focus:ring-1 focus:ring-indigo-500">
+          <span>${suffix}</span>
+          <div id="explanation-${qNum}" class="hidden mt-2 text-xs p-2.5 rounded bg-slate-50 border border-slate-200"></div>
+        </div>
+      `;
+    }
+
+    function saveAnswer(qNum, val) {
+      userAnswers[qNum] = val.trim();
+    }
+
+    function restoreUserInputs() {
+      Object.keys(userAnswers).forEach(qNum => {
+        const val = userAnswers[qNum];
+        const radio = document.querySelector(`input[name="q_${qNum}"][value="${val}"]`);
+        if (radio) radio.checked = true;
+
+        const select = document.getElementById(`select-${qNum}`);
+        if (select) select.value = val;
+
+        const input = document.getElementById(`input-${qNum}`);
+        if (input) input.value = val;
+      });
+
+      if (isSubmitted) showAllExplanations();
+    }
+
+    function submitTest() {
+      isSubmitted = true;
+      let score = 0;
+
+      for (let i = 1; i <= 40; i++) {
+        const userAns = (userAnswers[i] || "").toLowerCase();
+        const correctAns = answersData[i].ans.toLowerCase();
+        if (userAns === correctAns) score++;
+      }
+
+      const band = calculateBand(score);
+      const scoreBadge = document.getElementById('score-badge');
+      scoreBadge.innerText = `Kết quả: ${score}/40 (Band ${band})`;
+      scoreBadge.classList.remove('hidden');
+
+      showAllExplanations();
+      alert(`Bạn đã nộp bài thành công!\nSố câu đúng: ${score}/40\nIELTS Reading Band Estimated: ${band}`);
+    }
+
+    function calculateBand(score) {
+      if (score >= 39) return "9.0";
+      if (score >= 37) return "8.5";
+      if (score >= 35) return "8.0";
+      if (score >= 33) return "7.5";
+      if (score >= 30) return "7.0";
+      if (score >= 27) return "6.5";
+      if (score >= 23) return "6.0";
+      if (score >= 19) return "5.5";
+      if (score >= 15) return "5.0";
+      return "4.0 trở xuống";
+    }
+
+    function showAllExplanations() {
+      for (let i = 1; i <= 40; i++) {
+        const box = document.getElementById(`explanation-${i}`);
+        if (box) {
+          const userAns = userAnswers[i] || "Chưa trả lời";
+          const correctData = answersData[i];
+          const isCorrect = (userAnswers[i] || "").toLowerCase() === correctData.ans.toLowerCase();
+
+          box.className = `mt-2 text-xs p-3 rounded border ${isCorrect ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-red-50 border-red-300 text-red-900'}`;
+          box.innerHTML = `
+            <div><strong>Đáp án đúng:</strong> <span class="font-bold underline">${correctData.ans}</span> | <strong>Bạn chọn:</strong> ${userAns}</div>
+            <div class="mt-1 italic">"${correctData.quote}"</div>
+            <div class="mt-1">👉 <strong>Giải thích:</strong> ${correctData.exp}</div>
+          `;
+          box.classList.remove('hidden');
+        }
+      }
+    }
+  </script>
+</body>
+</html>
